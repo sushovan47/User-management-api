@@ -17,4 +17,6 @@ public interface UserService {
 
 	Long deleteUser(long id);
 
+	List<User> getUserEmailUsingUserId(String userId);
+
 }

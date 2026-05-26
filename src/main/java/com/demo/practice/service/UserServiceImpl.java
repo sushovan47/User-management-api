@@ -8,6 +8,8 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,9 +20,6 @@ import com.demo.practice.entity.UserCredentials;
 import com.demo.practice.exception.PracticeAppException;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.repository.UserRepo;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -65,8 +64,6 @@ public class UserServiceImpl implements UserService {
 				throw new PracticeAppException(
 						"User with this userId already exist. Please try with different userId.");
 			}
-//			if (!userRepository.existsByEmailOrUserIdAllIgnoreCase(userRequest.getEmail(), userRequest.getUserId())
-//					&& !userRepository.findByUserId(userRequest.getUserId()).isPresent()) {
 
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
 			LocalDate dob = LocalDate.parse(userRequest.getDob(), formatter);
@@ -152,4 +149,14 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	@Override
+	public List<User> getUserEmailUsingUserId(String userId) {
+		try {
+			return userRepository.findEmailByUserId(userId);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new PracticeAppException(e.getMessage());
+		}
+
+	}
 }

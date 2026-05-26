@@ -3,6 +3,7 @@ package com.demo.practice;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -41,7 +42,8 @@ public class SpringBootLatestPracticeApplication {
 	}
 
 	@Bean(name = "initCacheBean")
-	public CommandLineRunner initCache(JdbcTemplate jdbcTemplate, CacheManager cacheManager) {
+	public CommandLineRunner initCache(JdbcTemplate jdbcTemplate,
+			@Qualifier("localCacheManager") CacheManager cacheManager) {
 		return args -> {
 			Cache cache = cacheManager.getCache("configCache");
 			if (cache != null) {
@@ -49,9 +51,8 @@ public class SpringBootLatestPracticeApplication {
 				jdbcTemplate.queryForList(sql).forEach(row -> {
 					cache.put(row.get("conf_key"), row.get("conf_value"));
 				});
-				System.out.println("Cache populated from DB!");
+				System.out.println("ConfigCache populated from DB!");
 			}
 		};
 	}
-
 }
