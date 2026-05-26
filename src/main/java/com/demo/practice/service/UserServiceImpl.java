@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
-//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.demo.practice.entity.User;
@@ -20,8 +19,13 @@ import com.demo.practice.exception.PracticeAppException;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.repository.UserRepo;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 @Service
 public class UserServiceImpl implements UserService {
+
+	private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
 
 	@Value("${user.email.userid.exist}")
 	String inValidMailMsg;
@@ -51,37 +55,46 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Long saveUser(UserRequest userRequest) {
-		if (userRepository.existsByEmailAllIgnoreCase(userRequest.getEmail())) {
-			throw new PracticeAppException("User with this email already exist. Please try with different email.");
-		}
-		if (userRepository.existsByUserIdAllIgnoreCase(userRequest.getUserId())) {
-			throw new PracticeAppException("User with this userId already exist. Please try with different userId.");
-		}
-//		if (!userRepository.existsByEmailOrUserIdAllIgnoreCase(userRequest.getEmail(), userRequest.getUserId())
-//				&& !userRepository.findByUserId(userRequest.getUserId()).isPresent()) {
+		try {
+			if (userRepository.existsByEmailAllIgnoreCase(userRequest.getEmail())) {
+				logger.info("User with this email already exist. Please try with different email.");
+				throw new PracticeAppException("User with this email already exist. Please try with different email.");
+			}
+			if (userRepository.existsByUserIdAllIgnoreCase(userRequest.getUserId())) {
+				logger.info("User with this userId already exist. Please try with different userId.");
+				throw new PracticeAppException(
+						"User with this userId already exist. Please try with different userId.");
+			}
+//			if (!userRepository.existsByEmailOrUserIdAllIgnoreCase(userRequest.getEmail(), userRequest.getUserId())
+//					&& !userRepository.findByUserId(userRequest.getUserId()).isPresent()) {
 
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-		LocalDate dob = LocalDate.parse(userRequest.getDob(), formatter);
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+			LocalDate dob = LocalDate.parse(userRequest.getDob(), formatter);
 
-		User user = new User();
-		user.setDob(dob);
-		user.setEmail(userRequest.getEmail());
-		user.setMobileNo(userRequest.getMobileNo());
-		user.setGender(userRequest.getGender());
-		user.setFirstName(userRequest.getFirstName());
-		user.setLastName(userRequest.getLastName());
-		user.setUserId(userRequest.getUserId());
-		user.setActive(true);
-		user.setUpdatedBy(userRequest.getUserId());
-		user.setId(0l);
-		user.setUserCredentials(List.of(new UserCredentials(0l, userRequest.getUserId(),
-				passwordEncoder.encode(userRequest.getHashPwdCode()),
-				(userRequest.isAdmin() ? "ROLE_ADMIN" : userRequest.isUser() ? "ROLE_USER" : "ROLE_USER"), user)));
+			User user = new User();
+			user.setDob(dob);
+			user.setEmail(userRequest.getEmail());
+			user.setMobileNo(userRequest.getMobileNo());
+			user.setGender(userRequest.getGender());
+			user.setFirstName(userRequest.getFirstName());
+			user.setLastName(userRequest.getLastName());
+			user.setUserId(userRequest.getUserId());
+			user.setActive(true);
+			user.setUpdatedBy(userRequest.getUserId());
+			user.setId(0l);
+			user.setUserCredentials(List.of(new UserCredentials(0l, userRequest.getUserId(),
+					passwordEncoder.encode(userRequest.getHashPwdCode()),
+					(userRequest.isAdmin() ? "ROLE_ADMIN" : userRequest.isUser() ? "ROLE_USER" : "ROLE_USER"), user)));
 
-		if (userRepository.save(user) != null) {
-			return user.getId();
+			if (userRepository.save(user) != null) {
+				return user.getId();
+			}
+
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new PracticeAppException(e.getMessage());
 		}
-//		}
+
 		return 0l;
 	}
 
@@ -121,6 +134,7 @@ public class UserServiceImpl implements UserService {
 				return savedUser.getId();
 			}
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			throw new PracticeAppException(e.getMessage());
 		}
 
@@ -129,8 +143,13 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Long deleteUser(long id) {
-		userRepository.deleteById(id);
-		return id;
+		try {
+			userRepository.deleteById(id);
+			return id;
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new PracticeAppException(e.getMessage());
+		}
 	}
 
 }
