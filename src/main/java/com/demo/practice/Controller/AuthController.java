@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.demo.practice.model.AuthRequest;
 import com.demo.practice.model.AuthResponse;
 import com.demo.practice.model.OtpRequest;
+import com.demo.practice.model.OtpVerifyRequest;
 import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnCreate;
@@ -97,6 +98,17 @@ public class AuthController {
 
 		otpService.generateAndSendOtp(otpRequest.getUserId(), otpRequest.getEmail());
 		return ResponseEntity.ok(new Response(1, "OTP sent to <b>" + otpRequest.getEmail() + "</b>", true, null));
+
+	}
+
+	@PostMapping(value = "/verifyOtp", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> generateOtpAndSendMail(@RequestBody OtpVerifyRequest otpVerifyRequest) {
+
+		boolean isVerified = otpService.verifyOtp(otpVerifyRequest.getUserId(), otpVerifyRequest.getOtp(),
+				otpVerifyRequest.getEmail());
+
+		return ResponseEntity.ok(new Response(1,
+				isVerified ? "OTP verified successfully" : "OTP is incorrect or expired", isVerified, null));
 
 	}
 }

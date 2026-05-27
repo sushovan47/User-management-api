@@ -114,6 +114,18 @@
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-cache</artifactId>
 		</dependency>
+		
+		<!-- Embedded Redis Server (for local memory execution) -->
+		<dependency>
+		    <groupId>com.github.codemonstur</groupId>
+		    <artifactId>embedded-redis</artifactId>
+		    <version>1.4.3</version> <!-- Actively maintained version supporting newer Java editions -->
+		</dependency>
+		<!-- pom.xml dependency -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mustache</artifactId>
+		</dependency>
 		<!-- JWT -->
 	    <dependency>
 	        <groupId>io.jsonwebtoken</groupId>

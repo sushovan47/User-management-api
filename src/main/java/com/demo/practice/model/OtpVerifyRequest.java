@@ -14,5 +14,6 @@ import lombok.ToString;
 public class OtpVerifyRequest {
 	private String userId;
 	private String otp;
+	private String email;
 
 }

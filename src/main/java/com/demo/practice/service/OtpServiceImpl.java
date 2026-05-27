@@ -1,46 +1,77 @@
 package com.demo.practice.service;
 
+import java.time.Duration;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import com.demo.practice.exception.PracticeAppException;
 
 @Service
 public class OtpServiceImpl implements OtpService {
 
 	public EmailService emailService;
 
-	public CacheManager redisCacheManager;
+	public RedisTemplate<String, String> redisTemplate;
 
 	@Autowired
-	public OtpServiceImpl(RedisTemplate<String, String> redisTemplate, EmailService emailService,
-			@Qualifier("redisCacheManager") CacheManager redisCacheManager) {
-		this.redisCacheManager = redisCacheManager;
+	@Qualifier("localCacheManager")
+	CacheManager cacheManager;
+
+	@Autowired
+	public OtpServiceImpl(RedisTemplate<String, String> redisTemplate, EmailService emailService) {
 		this.emailService = emailService;
+		this.redisTemplate = redisTemplate;
 	}
 
 	@Override
 	public void generateAndSendOtp(String userId, String email) {
-		String otp = String.valueOf((int) (Math.random() * 900000) + 100000); // Generate a 6-digit OTP
-		Cache cache = redisCacheManager.getCache("otpCache");
-        if (cache != null) {
-        	cache.put("OTP:" + userId, otp); // Store OTP in Redis cache with userId as key
-        }
-//		redisTemplate.opsForValue().set("OTP:" + userId, otp, Duration.ofMinutes(2)); // Store OTP in Redis with userId
-																						// as key duration 2 minutes.
-		String subject = "Your OTP Code for User Registration";
-		String body = "Your OTP code is: " + otp;
-		emailService.sendEmail(email, subject, body); // Send OTP via email
+		try {
+			String expiredTime = StringUtils
+					.defaultString(cacheManager.getCache("configCache").get("otp.expired.time", String.class));
+			String restPassLink = StringUtils
+					.defaultString(cacheManager.getCache("configCache").get("password-reset-link", String.class));
+
+			String otp = String.valueOf((int) (Math.random() * 900000) + 100000); // Generate a 6-digit OTP
+
+			redisTemplate.opsForValue().set("OTP:" + userId, otp, Duration.ofMinutes(Integer.parseInt(expiredTime)));
+
+			String subject = "Your OTP Code for User Registration";
+			emailService.sendEmail(email, subject, otp, userId, expiredTime, "otp-email.mustache", cacheManager,
+					restPassLink);
+		}
+
+		catch (Exception e) {
+			System.err.println("Redis unavailable while saving OTP: " + e.getMessage());
+			throw new PracticeAppException("Unable to generate OTP at this time. Please try again later.");
+		}
 	}
 
 	@Override
-	public boolean verifyOtp(String userId, String otp) {
-		Cache cache = redisCacheManager.getCache("otpCache");
-		if (cache != null) {
-			String cachedOtp = cache.get("OTP:" + userId, String.class); // Retrieve OTP from Redis cache
-			return cachedOtp != null && cachedOtp.equals(otp);
+	public boolean verifyOtp(String userId, String otp, String email) {
+		try {
+			String expiredTime = StringUtils
+					.defaultString(cacheManager.getCache("configCache").get("otp.expired.time", String.class));
+			String restPassLink = StringUtils
+					.defaultString(cacheManager.getCache("configCache").get("password-reset-link", String.class));
+			String cachedOtp = redisTemplate.opsForValue().get("OTP:" + userId);
+			if (otp.equals(cachedOtp)) {
+				redisTemplate.delete("OTP:" + userId);
+				String subject = "Password reset for User Registration";
+				emailService.sendEmail(email, subject, otp, userId, expiredTime, "password-reset.mustache",
+						cacheManager, restPassLink);
+				return true;
+			}
+
+		}
+
+		catch (Exception e) {
+			System.err.println("Redis unavailable while verifying OTP: " + e.getMessage());
+			return false;
 		}
 		return false;
 	}
