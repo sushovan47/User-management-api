@@ -11,10 +11,9 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class OtpVerifyRequest {
-	private String userId;
-	private String otp;
-	private String email;
-	private long userPkId;
+public class ResetPasswordRequest {
+	private String userPkId;
+	private String token;
+	private String hashCode;
 
 }

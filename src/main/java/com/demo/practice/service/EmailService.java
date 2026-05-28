@@ -3,10 +3,13 @@ package com.demo.practice.service;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -101,6 +104,25 @@ public class EmailService {
 			logger.error("Failed to send email to {}: {}", toEmail, e.getMessage());
 			throw new PracticeAppException("Failed to send email: " + e.getMessage());
 		}
+	}
+
+	public String generateTokenForPasswordReset(String userId) {
+		try {
+			MessageDigest digest = MessageDigest.getInstance("SHA-256");
+			byte[] hash = digest
+					.digest((userId + UUID.randomUUID().toString().replace("-", "")).getBytes(StandardCharsets.UTF_8));
+			StringBuilder hexString = new StringBuilder();
+			for (byte b : hash) {
+				String hex = Integer.toHexString(0xff & b);
+				if (hex.length() == 1)
+					hexString.append('0');
+				hexString.append(hex);
+			}
+			return hexString.toString();
+		} catch (NoSuchAlgorithmException e) {
+			throw new PracticeAppException("Error while encrypting for reset password", e);
+		}
+
 	}
 
 }

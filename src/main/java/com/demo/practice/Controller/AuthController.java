@@ -22,6 +22,7 @@ import com.demo.practice.model.AuthRequest;
 import com.demo.practice.model.AuthResponse;
 import com.demo.practice.model.OtpRequest;
 import com.demo.practice.model.OtpVerifyRequest;
+import com.demo.practice.model.ResetPasswordRequest;
 import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnCreate;
@@ -105,10 +106,35 @@ public class AuthController {
 	public ResponseEntity<Response> generateOtpAndSendMail(@RequestBody OtpVerifyRequest otpVerifyRequest) {
 
 		boolean isVerified = otpService.verifyOtp(otpVerifyRequest.getUserId(), otpVerifyRequest.getOtp(),
-				otpVerifyRequest.getEmail());
+				otpVerifyRequest.getEmail(), otpVerifyRequest.getUserPkId());
+
+		return ResponseEntity.ok(new Response(1, isVerified ? "OTP verified, reset link shared with your email"
+				: "OTP is incorrect or expired, please resend OTP", isVerified, null));
+
+	}
+
+	@PostMapping(value = "/resetPassword", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> resetPassword(@RequestBody ResetPasswordRequest resetPwdReq) {
+
+		boolean isReset = otpService.resetPassword(resetPwdReq.getUserPkId(), resetPwdReq.getToken(),
+				resetPwdReq.getHashCode());
 
 		return ResponseEntity.ok(new Response(1,
-				isVerified ? "OTP verified successfully" : "OTP is incorrect or expired", isVerified, null));
+				isReset ? "Password reset successful! You can now log in with your new password."
+						: "The password reset link is invalid or has expired. Please request a new one",
+				isReset, null));
+
+	}
+
+	@PostMapping(value = "/validLink", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> validationCheckOnLink(@RequestBody ResetPasswordRequest resetPwdReq) {
+
+		boolean isValid = otpService.validLink(resetPwdReq.getUserPkId(), resetPwdReq.getToken());
+
+		return ResponseEntity.ok(new Response(1,
+				isValid ? "Link in valid Please procceed for Reset Password"
+						: "The password reset link is invalid or has expired. Please request a new one",
+				isValid, null));
 
 	}
 }

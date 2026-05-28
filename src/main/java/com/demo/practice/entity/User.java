@@ -70,5 +70,9 @@ public class User {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
 	@ToString.Exclude
 	private List<UserCredentials> userCredentials;
+	
+	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
+	@ToString.Exclude
+	private List<UserPswdResetToken> userPswdResetToken;
 
 }
