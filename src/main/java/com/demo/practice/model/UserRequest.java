@@ -3,8 +3,8 @@ package com.demo.practice.model;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-import com.demo.practice.bean.CustomValidation;
-import com.demo.practice.bean.ValidationType;
+import com.demo.practice.util.CustomValidation;
+import com.demo.practice.util.ValidationType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 

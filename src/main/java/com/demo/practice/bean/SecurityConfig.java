@@ -15,6 +15,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.demo.practice.service.CustomUserDetailsService;
+import com.demo.practice.util.CustomAccessDeniedHandler;
+import com.demo.practice.util.JwtAuthenticationFilter;
 
 @Configuration
 @EnableMethodSecurity
@@ -40,7 +42,7 @@ public class SecurityConfig {
 						.permitAll()
 						.requestMatchers("/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
 						.permitAll().requestMatchers("/api/encDec/**", "/api/admin/**").hasRole("ADMIN")
-						.requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN").anyRequest().authenticated())
+						.requestMatchers("/api/user/**").hasRole("USER").anyRequest().authenticated())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authenticationProvider(authenticationProvider())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

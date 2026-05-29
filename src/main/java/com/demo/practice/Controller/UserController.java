@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -32,16 +31,6 @@ public class UserController {
 
 	@Autowired
 	UserService userService;
-
-	@GetMapping(value = "/fetchAllUsers", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> fetchAllUsers() {
-		return Optional.ofNullable(userService.fetchAllUserList()).filter(list -> !list.isEmpty())
-				.map(users -> ResponseEntity
-						.ok(new Response(Response.increment(), "Data found successfully", true, Optional.of(users))))
-				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new Response(Response.increment(), "No data found", false, Optional.empty())));
-
-	}
 
 	@GetMapping(value = "/fetchUserById", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> fetchUserById(@RequestParam(required = true) String searchParamKey) {
@@ -69,13 +58,4 @@ public class UserController {
 		return ResponseEntity.ok(updatedVal != 0 ? new Response(updatedVal, "Data updated succesfully", true, null)
 				: new Response(0l, "No changes detected; no DB update performed", false, null));
 	}
-
-	@DeleteMapping(value = "/deleteUser/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Response> deleteUser(@PathVariable(required = true) long id) {
-
-		Long deletedVal = userService.deleteUser(id);
-		return ResponseEntity.ok(deletedVal != 0 ? new Response(deletedVal, "Data deleted succesfully", true, null)
-				: new Response(0l, "Data updation failed", false, null));
-	}
-
 }

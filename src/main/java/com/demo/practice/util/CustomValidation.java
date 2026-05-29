@@ -1,4 +1,4 @@
-package com.demo.practice.bean;
+package com.demo.practice.util;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
