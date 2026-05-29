@@ -75,6 +75,7 @@ public class EmailService {
 			String resourceName, CacheManager cacheManager, String resetPasswordLink)
 			throws PracticeAppException, Exception {
 		try {
+			logger.info("Mail sending to user {}: {}", toEmail);
 			JavaMailSenderImpl dynamicMailSender = getCachedMailSender(cacheManager);
 			MimeMessage message = dynamicMailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -99,6 +100,7 @@ public class EmailService {
 				helper.setText(finalHtml, true);
 			}
 			dynamicMailSender.send(message);
+			logger.info("Mail sent to user {}: {}", toEmail);
 
 		} catch (Exception e) {
 			logger.error("Failed to send email to {}: {}", toEmail, e.getMessage());

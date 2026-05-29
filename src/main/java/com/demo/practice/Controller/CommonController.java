@@ -34,14 +34,14 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
-public class AuthController {
+public class CommonController {
 
 	private final AuthenticationManager authenticationManager;
 	private final JWTService jwtService;
 	private final UserService userService;
 	private final OtpService otpService;
 
-	public AuthController(AuthenticationManager authenticationManager, JWTService jwtService, UserService userService,
+	public CommonController(AuthenticationManager authenticationManager, JWTService jwtService, UserService userService,
 			OtpService otpService) {
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
@@ -132,7 +132,7 @@ public class AuthController {
 		boolean isValid = otpService.validLink(resetPwdReq.getUserPkId(), resetPwdReq.getToken());
 
 		return ResponseEntity.ok(new Response(1,
-				isValid ? "Link in valid Please procceed for Reset Password"
+				isValid ? "Link is valid Please procceed for Reset Password"
 						: "The password reset link is invalid or has expired. Please request a new one",
 				isValid, null));
 

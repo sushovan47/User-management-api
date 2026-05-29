@@ -42,11 +42,6 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> fetchAllUserList() {
-		return userRepository.findAll();
-	}
-
-	@Override
 	public List<User> fetchUserById(String searchParamKey) {
 		return userRepository.findByUserIdContainingOrFirstNameContainingOrLastNameContainingOrEmailContaining(
 				searchParamKey, searchParamKey, searchParamKey, searchParamKey);
@@ -136,17 +131,6 @@ public class UserServiceImpl implements UserService {
 		}
 
 		return 0l;
-	}
-
-	@Override
-	public Long deleteUser(long id) {
-		try {
-			userRepository.deleteById(id);
-			return id;
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new PracticeAppException(e.getMessage());
-		}
 	}
 
 	@Override

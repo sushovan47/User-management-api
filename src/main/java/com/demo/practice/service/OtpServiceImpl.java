@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jasypt.encryption.StringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -27,6 +29,8 @@ import com.demo.practice.repository.UserResetTokenReo;
 
 @Service
 public class OtpServiceImpl implements OtpService {
+
+	private static final Logger logger = LogManager.getLogger(OtpServiceImpl.class);
 
 	@Value("${user.data.not.exist}")
 	String dataNotFoundMsg;
@@ -73,12 +77,13 @@ public class OtpServiceImpl implements OtpService {
 			redisTemplate.opsForValue().set("OTP:" + userId, otp, Duration.ofMinutes(Integer.parseInt(expiredTime)));
 
 			String subject = "Your OTP Code for User Registration";
+
 			emailService.sendEmail(email, subject, otp, userId, expiredTime, "otp-email.mustache", cacheManager,
 					restPassLink);
 		}
 
 		catch (Exception e) {
-			System.err.println("Redis unavailable while saving OTP: " + e.getMessage());
+			logger.error("Error while generating OTP", e);
 			throw new PracticeAppException("Unable to generate OTP at this time. Please try again later.");
 		}
 	}
@@ -130,7 +135,7 @@ public class OtpServiceImpl implements OtpService {
 		}
 
 		catch (Exception e) {
-			System.err.println("Redis unavailable while verifying OTP: " + e.getMessage());
+			logger.error("Error while verifying OTP", e);
 			return false;
 		}
 		return false;
@@ -139,12 +144,12 @@ public class OtpServiceImpl implements OtpService {
 	@Override
 	public boolean resetPassword(String userPkId, String token, String hashCode) {
 		try {
-			long userPkIdLng = Long.parseLong(jasyptStringEncryptor.encrypt(String.valueOf(userPkId)));
+			long userPkIdLng = Long.parseLong(jasyptStringEncryptor.decrypt(String.valueOf(userPkId)));
 
 			if (userResetTokenReo.existsByUserIdAllIgnoreCase(userPkIdLng)) {
 
-				boolean isActive = userResetTokenReo.findByUserId(userPkIdLng).stream()
-						.anyMatch(e -> LocalDateTime.now().isAfter(e.getExpiryTime()));
+				boolean isActive = userResetTokenReo.findByUserId(userPkIdLng).stream().anyMatch(
+						e -> LocalDateTime.now().isBefore(e.getExpiryTime()) && token.equals(e.getUserToken()));
 
 				if (isActive) {
 
@@ -167,7 +172,7 @@ public class OtpServiceImpl implements OtpService {
 				return isActive;
 			}
 		} catch (Exception e) {
-			System.err.println("Password reset not successfull: " + e.getMessage());
+			logger.error("Error while reset password", e);
 			return false;
 		}
 		return false;
@@ -184,7 +189,7 @@ public class OtpServiceImpl implements OtpService {
 						e -> LocalDateTime.now().isBefore(e.getExpiryTime()) && token.equals(e.getUserToken()));
 			}
 		} catch (Exception e) {
-			System.err.println("Password reset not successfull: " + e.getMessage());
+			logger.error("Error while validating reset password link ", e);
 			return false;
 		}
 		return false;
