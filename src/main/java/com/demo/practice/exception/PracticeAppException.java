@@ -13,4 +13,9 @@ public class PracticeAppException extends RuntimeException {
 
 	}
 
+	public PracticeAppException(String message, Exception e) {
+		super(message, e);
+
+	}
+
 }

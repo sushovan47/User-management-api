@@ -1,2 +1,9 @@
-INSERT INTO app_config (conf_key,conf_value) VALUES ('app.jwt.secret','sushovanpaullatestpracticespringbootapp');
-INSERT INTO app_config (conf_key,conf_value) VALUES ('app.jwt.expiration','8640000');
+INSERT INTO app_config (conf_key,conf_value) VALUES ('app.jwt.secret','sushovanpaullatestpracticespringbootapp')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('app.jwt.expiration','8640000')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('spring.mail.host','smtp.gmail.com')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('spring.mail.port','587')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('spring.mail.username','sushovanpaulme@gmail.com')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('spring.mail.password','ENC(Dr96XpY0r3dNVPRQFmAY/C+RWmVV2TwXrOt873DNSeU=)')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('otp.expired.time','4')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('app-name','User Management System')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('password-reset-link','http://localhost:5173/reset-password') ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);

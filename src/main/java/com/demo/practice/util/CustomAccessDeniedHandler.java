@@ -1,7 +1,6 @@
-package com.demo.practice.bean;
+package com.demo.practice.util;
 
 import java.io.IOException;
-import java.util.Enumeration;
 
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -29,18 +28,6 @@ public class CustomAccessDeniedHandler implements AuthenticationEntryPoint, Acce
 	@Override
 	public void commence(HttpServletRequest request, HttpServletResponse response,
 			AuthenticationException authException) throws IOException, ServletException {
-		// Log method and URI
-	    System.out.println("Incoming request: " + request.getMethod() + " " + request.getRequestURI());
-
-	    // Log all headers
-	    Enumeration<String> headerNames = request.getHeaderNames();
-	    while (headerNames.hasMoreElements()) {
-	        String headerName = headerNames.nextElement();
-	        String headerValue = request.getHeader(headerName);
-	        System.out.println(headerName + ": " + headerValue);
-	    }
-		
-		
 		String expiredMsg = (String) request.getAttribute("expired");
 		expiredMsg = authException.getMessage().equalsIgnoreCase("Bad credentials") ? "Incorrect password !" : authException.getMessage();
 

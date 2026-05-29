@@ -3,6 +3,7 @@ package com.demo.practice;
 import java.util.Arrays;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,12 +35,6 @@ public class SpringBootLatestPracticeApplication {
 	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
 		return args -> {
 
-			/**
-			 * System.out.println("Let's inspect the beans provided by Spring Boot:");
-			 * 
-			 * String[] beanNames = ctx.getBeanDefinitionNames(); Arrays.sort(beanNames);
-			 * for (String beanName : beanNames) { System.out.println(beanName); }
-			 */
 			System.out.println(
 					Arrays.asList(this.environment.getActiveProfiles()) + " APPLICATION STARTED SUCCESSFULLLY!!!");
 
@@ -47,7 +42,8 @@ public class SpringBootLatestPracticeApplication {
 	}
 
 	@Bean(name = "initCacheBean")
-	public CommandLineRunner initCache(JdbcTemplate jdbcTemplate, CacheManager cacheManager) {
+	public CommandLineRunner initCache(JdbcTemplate jdbcTemplate,
+			@Qualifier("localCacheManager") CacheManager cacheManager) {
 		return args -> {
 			Cache cache = cacheManager.getCache("configCache");
 			if (cache != null) {
@@ -55,9 +51,8 @@ public class SpringBootLatestPracticeApplication {
 				jdbcTemplate.queryForList(sql).forEach(row -> {
 					cache.put(row.get("conf_key"), row.get("conf_value"));
 				});
-				System.out.println("Cache populated from DB!");
+				System.out.println("ConfigCache populated from DB!");
 			}
 		};
 	}
-
 }

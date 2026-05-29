@@ -33,6 +33,16 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
+			<exclusions>
+		        <exclusion>
+		            <groupId>org.springframework.boot</groupId>
+		            <artifactId>spring-boot-starter-logging</artifactId>
+		        </exclusion>
+		    </exclusions>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
 		<!-- Source: https://mvnrepository.com/artifact/org.springframework/spring-web -->
 		<dependency>
@@ -70,6 +80,11 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
+
 
 		<!-- Source: https://mvnrepository.com/artifact/org.hibernate/hibernate-validator -->
 		<dependency>
@@ -92,7 +107,24 @@
 		</dependency>
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		
+		<!-- Embedded Redis Server (for local memory execution) -->
+		<dependency>
+		    <groupId>com.github.codemonstur</groupId>
+		    <artifactId>embedded-redis</artifactId>
+		    <version>1.4.3</version> <!-- Actively maintained version supporting newer Java editions -->
+		</dependency>
+		<!-- pom.xml dependency -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-mustache</artifactId>
 		</dependency>
 		<!-- JWT -->
 	    <dependency>
