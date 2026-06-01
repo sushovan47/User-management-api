@@ -26,6 +26,7 @@ public class Response {
 	private boolean iSuccess = false;
 	@JsonInclude(Include.NON_NULL)
 	private Optional<List<?>> data;
+	private String appName;
 
 	public static long increment() {
 		AtomicInteger count = new AtomicInteger();

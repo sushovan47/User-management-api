@@ -51,7 +51,6 @@ public class SpringBootLatestPracticeApplication {
 				jdbcTemplate.queryForList(sql).forEach(row -> {
 					cache.put(row.get("conf_key"), row.get("conf_value"));
 				});
-				System.out.println("ConfigCache populated from DB!");
 			}
 		};
 	}

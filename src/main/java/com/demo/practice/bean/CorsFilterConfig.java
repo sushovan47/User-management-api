@@ -62,7 +62,7 @@ public class CorsFilterConfig {
 	@Bean(name = "openAPIBean")
 	public OpenAPI customOpenAPI() {
 		final String securitySchemeName = "bearerAuth";
-		return new OpenAPI().info(new Info().title("Latest Practice API").version("1.0"))
+		return new OpenAPI().info(new Info().title("User Management System API").version("1.0"))
 				.addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
 				.components(new Components().addSecuritySchemes(securitySchemeName,
 						new SecurityScheme().name(securitySchemeName).type(SecurityScheme.Type.HTTP).scheme("bearer")

@@ -3,6 +3,8 @@ package com.demo.practice.Controller;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,6 +31,7 @@ import com.demo.practice.model.UserRequest.OnCreate;
 import com.demo.practice.service.JWTService;
 import com.demo.practice.service.OtpService;
 import com.demo.practice.service.UserService;
+import com.demo.practice.util.CommonUtil;
 
 import jakarta.validation.Valid;
 
@@ -40,13 +43,17 @@ public class CommonController {
 	private final JWTService jwtService;
 	private final UserService userService;
 	private final OtpService otpService;
+	private final CommonUtil commonUtils;
+	private final CacheManager cacheManager;
 
 	public CommonController(AuthenticationManager authenticationManager, JWTService jwtService, UserService userService,
-			OtpService otpService) {
+			OtpService otpService, CommonUtil commonUtils, @Qualifier("localCacheManager") CacheManager cacheManager) {
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
 		this.userService = userService;
 		this.otpService = otpService;
+		this.commonUtils = commonUtils;
+		this.cacheManager = cacheManager;
 	}
 
 	@PostMapping("/login")
@@ -57,7 +64,8 @@ public class CommonController {
 		UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 		String token = jwtService.generateToken(userDetails);
 
-		return new AuthResponse(token, "Bearer", jwtService.getExpirationTime(), "Login successful",
+		return new AuthResponse(token, "Bearer", jwtService.getExpirationTime(),
+				commonUtils.getValidationMessage("user.login.success"),
 				StringUtils.replaceEach(userDetails.getAuthorities().toString(), new String[] { "[", "]" },
 						new String[] { "", "" }),
 				userDetails.getUsername(), true);
@@ -71,14 +79,17 @@ public class CommonController {
 			bindingResult.getAllErrors().forEach(error -> {
 				errorMessage.append(error.getDefaultMessage()).append("; ");
 			});
-			return ResponseEntity.badRequest()
-					.body(new Response(Response.increment(), errorMessage.toString(), false, null));
+			return ResponseEntity.badRequest().body(new Response(Response.increment(), errorMessage.toString(), false,
+					null,
+					StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 		}
 		Long insertedVal = userService.saveUser(userRequest);
 		return ResponseEntity.ok(insertedVal != 0
-				? new Response(insertedVal,
-						"User registration done succesfully, you can login from <a href='/login'>here</a>", true, null)
-				: new Response(Response.increment(), "Data updation failed", false, null));
+				? new Response(insertedVal, commonUtils.getValidationMessage("user.regn.success"), true, null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))
+				: new Response(Response.increment(), commonUtils.getValidationMessage("user.data.update.failed"), false,
+						null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
 
@@ -86,11 +97,14 @@ public class CommonController {
 	public ResponseEntity<Response> getUserEmailUsingUserId(@RequestParam(required = true) String userId) {
 		return Optional.ofNullable(userService.getUserEmailUsingUserId(userId))
 				.map(email -> ResponseEntity.ok(new Response(Response.increment(),
-						!email.isEmpty() ? "Data found successfully"
-								: "No email present for this user <b>" + userId + "</b>",
-						!email.isEmpty() ? true : false, Optional.of(email))))
+						!email.isEmpty() ? commonUtils.getValidationMessage("user.data.found")
+								: commonUtils.getValidationMessage("user.no.mail.found") + userId + "</b>",
+						!email.isEmpty() ? true : false, Optional.of(email),
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))))
 				.orElse(ResponseEntity.status(404)
-						.body(new Response(Response.increment(), "No data found", false, Optional.empty())));
+						.body(new Response(Response.increment(), commonUtils.getValidationMessage("user.data.no.found"),
+								false, Optional.empty(), StringUtils.defaultString(
+										cacheManager.getCache("configCache").get("app-name", String.class)))));
 
 	}
 
@@ -98,7 +112,9 @@ public class CommonController {
 	public ResponseEntity<Response> generateOtpAndSendMail(@RequestBody OtpRequest otpRequest) {
 
 		otpService.generateAndSendOtp(otpRequest.getUserId(), otpRequest.getEmail());
-		return ResponseEntity.ok(new Response(1, "OTP sent to <b>" + otpRequest.getEmail() + "</b>", true, null));
+		return ResponseEntity.ok(new Response(1,
+				commonUtils.getValidationMessage("user.otp.sent") + otpRequest.getEmail() + "</b>", true, null,
+				StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
 
@@ -108,8 +124,11 @@ public class CommonController {
 		boolean isVerified = otpService.verifyOtp(otpVerifyRequest.getUserId(), otpVerifyRequest.getOtp(),
 				otpVerifyRequest.getEmail(), otpVerifyRequest.getUserPkId());
 
-		return ResponseEntity.ok(new Response(1, isVerified ? "OTP verified, reset link shared with your email"
-				: "OTP is incorrect or expired, please resend OTP", isVerified, null));
+		return ResponseEntity.ok(new Response(1,
+				isVerified ? commonUtils.getValidationMessage("user.otp.verified")
+						: commonUtils.getValidationMessage("user.otp.incorrect"),
+				isVerified, null,
+				StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
 
@@ -120,9 +139,10 @@ public class CommonController {
 				resetPwdReq.getHashCode());
 
 		return ResponseEntity.ok(new Response(1,
-				isReset ? "Password reset successful! You can now log in with your new password."
-						: "The password reset link is invalid or has expired. Please request a new one",
-				isReset, null));
+				isReset ? commonUtils.getValidationMessage("user.reset.password")
+						: commonUtils.getValidationMessage("user.reset.faliure"),
+				isReset, null,
+				StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
 
@@ -132,9 +152,10 @@ public class CommonController {
 		boolean isValid = otpService.validLink(resetPwdReq.getUserPkId(), resetPwdReq.getToken());
 
 		return ResponseEntity.ok(new Response(1,
-				isValid ? "Link is valid Please procceed for Reset Password"
-						: "The password reset link is invalid or has expired. Please request a new one",
-				isValid, null));
+				isValid ? commonUtils.getValidationMessage("user.link.valid")
+						: commonUtils.getValidationMessage("user.link.invalid"),
+				isValid, null,
+				StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
 }

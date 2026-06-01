@@ -2,7 +2,10 @@ package com.demo.practice.Controller;
 
 import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +23,7 @@ import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnUpdate;
 import com.demo.practice.service.UserService;
+import com.demo.practice.util.CommonUtil;
 
 import jakarta.validation.Valid;
 import lombok.NoArgsConstructor;
@@ -32,13 +36,23 @@ public class UserController {
 	@Autowired
 	UserService userService;
 
+	@Autowired
+	CommonUtil commonUtil;
+
+	@Autowired
+	@Qualifier("localCacheManager")
+	CacheManager cacheManager;
+
 	@GetMapping(value = "/fetchUserById", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> fetchUserById(@RequestParam(required = true) String searchParamKey) {
 		return Optional.ofNullable(userService.fetchUserById(searchParamKey)).filter(l -> !l.isEmpty())
-				.map(users -> ResponseEntity
-						.ok(new Response(Response.increment(), "Data found successfully", true, Optional.of(users))))
+				.map(users -> ResponseEntity.ok(new Response(Response.increment(),
+						commonUtil.getValidationMessage("user.data.found"), true, Optional.of(users),
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))))
 				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body(new Response(Response.increment(), "No data found", false, Optional.empty())));
+						.body(new Response(Response.increment(), commonUtil.getValidationMessage("user.data.no.found"),
+								false, Optional.empty(), StringUtils.defaultString(
+										cacheManager.getCache("configCache").get("app-name", String.class)))));
 
 	}
 
@@ -50,12 +64,16 @@ public class UserController {
 			bindingResult.getAllErrors().forEach(error -> {
 				errorMessage.append(error.getDefaultMessage()).append("; ");
 			});
-			return ResponseEntity.badRequest()
-					.body(new Response(Response.increment(), errorMessage.toString(), false, null));
+			return ResponseEntity.badRequest().body(new Response(Response.increment(), errorMessage.toString(), false,
+					null,
+					StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 		}
 
 		Long updatedVal = userService.updateUser(userRequest, id);
-		return ResponseEntity.ok(updatedVal != 0 ? new Response(updatedVal, "Data updated succesfully", true, null)
-				: new Response(0l, "No changes detected; no DB update performed", false, null));
+		return ResponseEntity.ok(updatedVal != 0
+				? new Response(updatedVal, commonUtil.getValidationMessage("user.data.update.success"), true, null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))
+				: new Response(0l, commonUtil.getValidationMessage("user.no.db.changes"), false, null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 	}
 }
