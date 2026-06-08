@@ -35,4 +35,10 @@ public class AdminServiceImpl implements AdminService {
 		}
 	}
 
+	@Override
+	public List<User> fetchUserById(String searchParamKey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

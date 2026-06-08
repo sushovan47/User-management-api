@@ -10,4 +10,6 @@ public interface AdminService {
 
 	Long deleteUser(long id);
 
+	List<User> fetchUserById(String searchParamKey);
+
 }

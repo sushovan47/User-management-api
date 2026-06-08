@@ -7,3 +7,4 @@ INSERT INTO app_config (conf_key,conf_value) VALUES ('spring.mail.password','ENC
 INSERT INTO app_config (conf_key,conf_value) VALUES ('otp.expired.time','4')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
 INSERT INTO app_config (conf_key,conf_value) VALUES ('app-name','User Management System')ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
 INSERT INTO app_config (conf_key,conf_value) VALUES ('password-reset-link','http://localhost:5173/reset-password') ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);
+INSERT INTO app_config (conf_key,conf_value) VALUES ('image.upload.path','C:/image-upload/Backup') ON DUPLICATE KEY UPDATE conf_value = VALUES(conf_value);

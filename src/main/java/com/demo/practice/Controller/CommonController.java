@@ -1,10 +1,14 @@
 package com.demo.practice.Controller;
 
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,25 +18,31 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.practice.model.AuthRequest;
 import com.demo.practice.model.AuthResponse;
+import com.demo.practice.model.DownloadImgResp;
 import com.demo.practice.model.OtpRequest;
 import com.demo.practice.model.OtpVerifyRequest;
 import com.demo.practice.model.ResetPasswordRequest;
 import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnCreate;
+import com.demo.practice.service.AdminService;
 import com.demo.practice.service.JWTService;
 import com.demo.practice.service.OtpService;
 import com.demo.practice.service.UserService;
 import com.demo.practice.util.CommonUtil;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.validation.Valid;
 
 @RestController
@@ -45,15 +55,18 @@ public class CommonController {
 	private final OtpService otpService;
 	private final CommonUtil commonUtils;
 	private final CacheManager cacheManager;
+	private final CommonUtil commonUtil;
 
 	public CommonController(AuthenticationManager authenticationManager, JWTService jwtService, UserService userService,
-			OtpService otpService, CommonUtil commonUtils, @Qualifier("localCacheManager") CacheManager cacheManager) {
+			OtpService otpService, CommonUtil commonUtils, @Qualifier("localCacheManager") CacheManager cacheManager,
+			CommonUtil commonUtil) {
 		this.authenticationManager = authenticationManager;
 		this.jwtService = jwtService;
 		this.userService = userService;
 		this.otpService = otpService;
 		this.commonUtils = commonUtils;
 		this.cacheManager = cacheManager;
+		this.commonUtil = commonUtil;
 	}
 
 	@PostMapping("/login")
@@ -158,4 +171,40 @@ public class CommonController {
 				StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 
 	}
+
+	@PostMapping(value = "/uploadImage", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String, String>> uploadImage(
+			@Parameter(description = "Select the image file to upload", content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)) @RequestParam("file") MultipartFile file,
+			@RequestParam("userCrednId") long userCrednId) {
+
+		Map<String, String> response = userService.uploadImage(file, userCrednId);
+
+		return response.get("isSuccess").equals("true") ? ResponseEntity.ok(response)
+				: ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
+
+	@GetMapping(value = "/downloadImage/{userCrednId}", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Resource> downloadImage(@PathVariable("userCrednId") long userCrednId) {
+
+		DownloadImgResp responseDwnldImg = userService.downloadImage(userCrednId);
+
+		return ResponseEntity.ok().contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.header(HttpHeaders.CONTENT_DISPOSITION,
+						"attachment; filename=\"" + responseDwnldImg.getFileName() + "\"")
+				.body(responseDwnldImg.getFileResource());
+	}
+
+	@GetMapping(value = "/fetchUserById", produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> fetchUserById(@RequestParam(required = true) String searchParamKey) {
+		return Optional.ofNullable(userService.fetchUserById(searchParamKey)).filter(l -> !l.isEmpty())
+				.map(users -> ResponseEntity.ok(new Response(Response.increment(),
+						commonUtil.getValidationMessage("user.data.found"), true, Optional.of(users),
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))))
+				.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body(new Response(Response.increment(), commonUtil.getValidationMessage("user.data.no.found"),
+								false, Optional.empty(), StringUtils.defaultString(
+										cacheManager.getCache("configCache").get("app-name", String.class)))));
+
+	}
+
 }

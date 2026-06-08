@@ -2,6 +2,8 @@ package com.demo.practice.entity;
 
 import java.io.Serializable;
 
+import org.hibernate.annotations.DynamicUpdate;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -24,6 +26,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity(name = "user_credentials")
+@DynamicUpdate
 public class UserCredentials implements Serializable {
 
 	/**
@@ -40,6 +43,12 @@ public class UserCredentials implements Serializable {
 	private String hashPwdCode;
 	@Column(name = "role")
 	private String role;
+	@Column(name = "image_storage_indicator")
+	private String imageStorageIndicator;
+	@Column(name = "image_upload_name")
+	private String imageUploadName;
+	@Column(name = "image_actual_name")
+	private String imageActualName;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id", referencedColumnName = "id")

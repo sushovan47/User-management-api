@@ -164,7 +164,7 @@ public class OtpServiceImpl implements OtpService {
 					userUpdate.setUserCredentials(new ArrayList<>(
 							Arrays.asList(new UserCredentials(userUpdate.getUserCredentials().get(0).getUserCrednid(),
 									userUpdate.getUserId(), passwordEncoder.encode(decodedHashCode),
-									(userUpdate.getUserCredentials().get(0).getRole()), userUpdate))));
+									(userUpdate.getUserCredentials().get(0).getRole()), "", "", "", userUpdate))));
 
 					userRepository.saveAndFlush(userUpdate);
 

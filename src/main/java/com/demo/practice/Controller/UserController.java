@@ -76,4 +76,5 @@ public class UserController {
 				: new Response(0l, commonUtil.getValidationMessage("user.no.db.changes"), false, null,
 						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 	}
+
 }

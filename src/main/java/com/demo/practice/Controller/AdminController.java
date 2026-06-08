@@ -59,5 +59,4 @@ public class AdminController {
 				: new Response(0l, commonUtil.getValidationMessage("user.data.update.failed"), false, null,
 						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
 	}
-
 }
