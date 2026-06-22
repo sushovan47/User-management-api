@@ -7,6 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.demo.practice.entity.User;
 import com.demo.practice.model.DownloadImgResp;
+import com.demo.practice.model.PwdRequest;
 import com.demo.practice.model.UserRequest;
 
 public interface UserService {
@@ -22,5 +23,7 @@ public interface UserService {
 	Map<String, String> uploadImage(MultipartFile file, long userCrednId);
 
 	DownloadImgResp downloadImage(long userCrednId);
+
+	Long updatePwd(PwdRequest pwdRequest);
 
 }

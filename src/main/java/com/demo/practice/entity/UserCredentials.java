@@ -3,6 +3,10 @@ package com.demo.practice.entity;
 import java.io.Serializable;
 
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +15,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -27,6 +30,8 @@ import lombok.ToString;
 @ToString
 @Entity(name = "user_credentials")
 @DynamicUpdate
+@Audited
+@AuditTable("user_credentials_history")
 public class UserCredentials implements Serializable {
 
 	/**

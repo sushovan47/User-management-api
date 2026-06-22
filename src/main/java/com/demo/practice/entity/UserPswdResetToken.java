@@ -2,6 +2,9 @@ package com.demo.practice.entity;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -25,6 +28,8 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity(name = "user_pswd_reset_token")
+@Audited
+@AuditTable("user_pswd_reset_token_history")
 public class UserPswdResetToken {
 
 	@Id

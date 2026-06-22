@@ -29,6 +29,7 @@ import com.demo.practice.entity.User;
 import com.demo.practice.entity.UserCredentials;
 import com.demo.practice.exception.PracticeAppException;
 import com.demo.practice.model.DownloadImgResp;
+import com.demo.practice.model.PwdRequest;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.repository.UserCredentialsRepo;
 import com.demo.practice.repository.UserRepo;
@@ -260,5 +261,34 @@ public class UserServiceImpl implements UserService {
 			logger.error("Failed to download image: " + e.getMessage());
 		}
 		return new DownloadImgResp();
+	}
+
+	@Override
+	public Long updatePwd(PwdRequest pwdRequest) {
+		try {
+			String[] search = { "<serach_str>" };
+			String[] replace = { String.valueOf(pwdRequest.getUserPkId()) };
+
+			User userUpdate = userRepository.findById(pwdRequest.getUserPkId()).orElseThrow(
+					() -> new PracticeAppException(StringUtils.replaceEach(dataNotFoundMsg, search, replace)));
+
+			UserCredentials userCreden = userCrednRepo.findById(userUpdate.getUserCredentials().get(0).getUserCrednid())
+					.orElseThrow(
+							() -> new PracticeAppException(StringUtils.replaceEach(dataNotFoundMsg, search, replace)));
+
+			if (userCreden.getHashPwdCode() != null
+					&& !passwordEncoder.matches(pwdRequest.getOldPassword(), userCreden.getHashPwdCode())) {
+				logger.info("Old password is incorrect. Please provide correct old password.");
+				throw new PracticeAppException("Old password is incorrect. Please provide correct old password.");
+
+			}
+			userCreden.setHashPwdCode(passwordEncoder.encode(pwdRequest.getNewPassword()));
+			userCrednRepo.saveAndFlush(userCreden);
+
+			return userCreden.getUserCrednid();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			throw new PracticeAppException(e.getMessage());
+		}
 	}
 }

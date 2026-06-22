@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.hibernate.annotations.DynamicUpdate;
+import org.hibernate.envers.AuditTable;
+import org.hibernate.envers.Audited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -38,6 +40,8 @@ import lombok.ToString;
 @Entity
 @EntityListeners(AuditingEntityListener.class)
 @Table(name = "user", uniqueConstraints = @UniqueConstraint(columnNames = { "email", "user_id" }))
+@Audited
+@AuditTable("user_history")
 public class User {
 
 	@Id
@@ -70,7 +74,7 @@ public class User {
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
 	@ToString.Exclude
 	private List<UserCredentials> userCredentials;
-	
+
 	@OneToMany(cascade = CascadeType.ALL, mappedBy = "user", fetch = FetchType.EAGER)
 	@ToString.Exclude
 	private List<UserPswdResetToken> userPswdResetToken;

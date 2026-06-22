@@ -1,5 +1,6 @@
 package com.demo.practice.Controller;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +20,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.demo.practice.model.AuditLogDto;
+import com.demo.practice.model.PwdRequest;
 import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnUpdate;
+import com.demo.practice.repository.CustomAuditRepositoryImpl;
 import com.demo.practice.service.UserService;
 import com.demo.practice.util.CommonUtil;
 
@@ -42,6 +46,9 @@ public class UserController {
 	@Autowired
 	@Qualifier("localCacheManager")
 	CacheManager cacheManager;
+
+	@Autowired
+	CustomAuditRepositoryImpl customAuditRepo;
 
 	@GetMapping(value = "/fetchUserById", produces = MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Response> fetchUserById(@RequestParam(required = true) String searchParamKey) {
@@ -75,6 +82,32 @@ public class UserController {
 						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))
 				: new Response(0l, commonUtil.getValidationMessage("user.no.db.changes"), false, null,
 						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
+	}
+
+	@PutMapping(value = "/updatePwd", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Response> updatePassword(@Valid @RequestBody PwdRequest pwdRequest,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
+			StringBuilder errorMessage = new StringBuilder();
+			bindingResult.getAllErrors().forEach(error -> {
+				errorMessage.append(error.getDefaultMessage()).append("; ");
+			});
+			return ResponseEntity.badRequest().body(new Response(Response.increment(), errorMessage.toString(), false,
+					null,
+					StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
+		}
+
+		Long updatedVal = userService.updatePwd(pwdRequest);
+		return ResponseEntity.ok(updatedVal != 0
+				? new Response(updatedVal, commonUtil.getValidationMessage("user.pwd.update.success"), true, null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class)))
+				: new Response(0l, commonUtil.getValidationMessage("user.no.db.changes"), false, null,
+						StringUtils.defaultString(cacheManager.getCache("configCache").get("app-name", String.class))));
+	}
+
+	@GetMapping(value = "/history/{userPkId}")
+	public List<AuditLogDto> getUserHistory(@PathVariable Long userPkId) {
+		return customAuditRepo.getUserHistoryLog(userPkId);
 	}
 
 }

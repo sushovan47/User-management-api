@@ -35,7 +35,6 @@ import com.demo.practice.model.ResetPasswordRequest;
 import com.demo.practice.model.Response;
 import com.demo.practice.model.UserRequest;
 import com.demo.practice.model.UserRequest.OnCreate;
-import com.demo.practice.service.AdminService;
 import com.demo.practice.service.JWTService;
 import com.demo.practice.service.OtpService;
 import com.demo.practice.service.UserService;
@@ -204,7 +203,5 @@ public class CommonController {
 						.body(new Response(Response.increment(), commonUtil.getValidationMessage("user.data.no.found"),
 								false, Optional.empty(), StringUtils.defaultString(
 										cacheManager.getCache("configCache").get("app-name", String.class)))));
-
 	}
-
 }
